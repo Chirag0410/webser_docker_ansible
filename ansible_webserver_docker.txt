@@ -1,0 +1,40 @@
+- hosts: all
+  tasks:
+  - yum_repository:
+      name: "docker"
+      baseurl: "https://download.docker.com/linux/centos/7/x86_64/stable/"
+      state: present
+      description: "docker repo"
+      gpgcheck: no
+  - command: "yum install docker-ce --nobest -y"
+  - service:
+      name: "docker"
+      state: started
+      enabled: yes
+  - package:
+      name: "python36"
+      state: present
+  - pip: 
+      name: "docker"
+      state: present
+  - file:
+      path: "/docker_web"
+      state: directory
+  - copy:
+      src: "/docker_web/index.html"
+      content: "task 10 completed "
+  - docker_image:
+        name: "httpd"
+        source: pull
+  - docker_container:
+        name: "docker_web_server"
+        state: started
+        image: httpd
+        exposed_ports: "80"
+        ports: "81:80"
+        volumes: "/docker_web:/usr/local/apache2/htdocs/"
+  - firewalld:
+        port: "81/tcp"
+        state: enabled
+        permanent: yes
+        immediate: yes
